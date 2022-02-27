@@ -773,10 +773,11 @@ impl SigAction {
     }
 }
 
-/// Changes the action taken by a process on receipt of a specific signal.
+/// Examines and changes the action taken by a process on receipt of a specific signal.
 ///
 /// `signal` can be any signal except `SIGKILL` or `SIGSTOP`. On success, it returns the previous
-/// action for the given signal. If `sigaction` fails, no new signal handler is installed.
+/// action for the given signal. If the specified action is `None` or `sigaction` fails,
+/// no new signal handler is installed.
 ///
 /// # Safety
 ///
@@ -790,11 +791,11 @@ impl SigAction {
 ///   installed by, for example, C code, then there is no guarantee its function
 ///   pointer is valid.  In that case, this function effectively dereferences a
 ///   raw pointer of unknown provenance.
-pub unsafe fn sigaction(signal: Signal, sigaction: &SigAction) -> Result<SigAction> {
+pub unsafe fn sigaction(signal: Signal, sigaction: Option<&SigAction>) -> Result<SigAction> {
     let mut oldact = mem::MaybeUninit::<libc::sigaction>::uninit();
 
     let res = libc::sigaction(signal as libc::c_int,
-                              &sigaction.sigaction as *const libc::sigaction,
+                              sigaction.map_or(ptr::null(), |s| &s.sigaction as *const libc::sigaction),
                               oldact.as_mut_ptr());
 
     Errno::result(res).map(|_| SigAction { sigaction: oldact.assume_init() })

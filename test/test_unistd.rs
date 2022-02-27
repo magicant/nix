@@ -744,7 +744,7 @@ fn test_alarm() {
     let handler = SigHandler::Handler(alarm_signal_handler);
     let signal_action = SigAction::new(handler, SaFlags::SA_RESTART, SigSet::empty());
     let old_handler = unsafe {
-        sigaction(Signal::SIGALRM, &signal_action)
+        sigaction(Signal::SIGALRM, Some(&signal_action))
             .expect("unable to set signal handler for alarm")
     };
 
@@ -769,7 +769,7 @@ fn test_alarm() {
 
     // Reset the signal.
     unsafe {
-        sigaction(Signal::SIGALRM, &old_handler)
+        sigaction(Signal::SIGALRM, Some(&old_handler))
             .expect("unable to set signal handler for alarm");
     }
 }

@@ -33,8 +33,9 @@ fn alarm_fires() {
     // for flipping `ALARM_CALLED`.
     let handler = SigHandler::Handler(handle_sigalarm);
     let signal_action = SigAction::new(handler, SaFlags::SA_RESTART, SigSet::empty());
-    let old_handler =
-        unsafe { sigaction(SIG, &signal_action).expect("unable to set signal handler for alarm") };
+    let old_handler = unsafe {
+        sigaction(SIG, Some(&signal_action)).expect("unable to set signal handler for alarm")
+    };
 
     // Create the timer. We use the monotonic clock here, though any would do
     // really. The timer is set to fire every 250 milliseconds with no delay for
@@ -94,6 +95,6 @@ fn alarm_fires() {
     drop(timer);
     thread::sleep(TIMER_PERIOD);
     unsafe {
-        sigaction(SIG, &old_handler).expect("unable to reset signal handler");
+        sigaction(SIG, Some(&old_handler)).expect("unable to reset signal handler");
     }
 }

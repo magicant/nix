@@ -27,10 +27,11 @@ fn test_old_sigaction_flags() {
         SaFlags::empty(),
         SigSet::empty(),
     );
-    let oact = unsafe { sigaction(SIGINT, &act) }.unwrap();
+    let oact = unsafe { sigaction(SIGINT, Some(&act)) }.unwrap();
     let _flags = oact.flags();
-    let oact = unsafe { sigaction(SIGINT, &act) }.unwrap();
+    let oact = unsafe { sigaction(SIGINT, Some(&act)) }.unwrap();
     let _flags = oact.flags();
+    assert_eq!(act, oact);
 }
 
 #[test]

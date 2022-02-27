@@ -411,7 +411,7 @@ fn test_write_sigev_signal() {
                             SaFlags::SA_RESETHAND,
                             SigSet::empty());
     SIGNALED.store(false, Ordering::Relaxed);
-    unsafe { sigaction(Signal::SIGUSR2, &sa) }.unwrap();
+    unsafe { sigaction(Signal::SIGUSR2, Some(&sa)) }.unwrap();
 
     const INITIAL: &[u8] = b"abcdef123456";
     const WBUF: &[u8] = b"CDEF";
@@ -578,7 +578,7 @@ fn test_liocb_listio_signal() {
                 LioOpcode::LIO_READ
             ).finish();
         SIGNALED.store(false, Ordering::Relaxed);
-        unsafe { sigaction(Signal::SIGUSR2, &sa) }.unwrap();
+        unsafe { sigaction(Signal::SIGUSR2, Some(&sa)) }.unwrap();
         let err = liocb.listio(LioMode::LIO_NOWAIT, sigev_notify);
         err.expect("lio_listio");
         while !SIGNALED.load(Ordering::Relaxed) {
