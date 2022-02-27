@@ -487,7 +487,7 @@ use std::iter::FromIterator;
 use std::iter::IntoIterator;
 
 /// Specifies a set of [`Signal`]s that may be blocked, waited for, etc.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq)]
 pub struct SigSet {
     sigset: libc::sigset_t
 }
@@ -585,6 +585,20 @@ impl SigSet {
     }
 }
 
+impl PartialEq for SigSet {
+    fn eq(&self, other: &SigSet) -> bool {
+        Signal::iterator().all(|signal| self.contains(signal) == other.contains(signal))
+    }
+}
+
+impl std::hash::Hash for SigSet {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        for signal in Signal::iterator() {
+            self.contains(signal).hash(state);
+        }
+    }
+}
+
 impl AsRef<libc::sigset_t> for SigSet {
     fn as_ref(&self) -> &libc::sigset_t {
         &self.sigset
@@ -658,7 +672,7 @@ pub enum SigHandler {
 }
 
 /// Action to take on receipt of a signal. Corresponds to `sigaction`.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq)]
 pub struct SigAction {
     sigaction: libc::sigaction
 }
@@ -770,6 +784,18 @@ impl SigAction {
                 }
                 as extern fn(libc::c_int)),
         }
+    }
+}
+
+impl PartialEq for SigAction {
+    fn eq(&self, other: &SigAction) -> bool {
+        self.flags() == other.flags() && self.mask() == other.mask() && self.handler() == other.handler()
+    }
+}
+
+impl std::hash::Hash for SigAction {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        (self.flags(), self.mask(), self.handler()).hash(state);
     }
 }
 
